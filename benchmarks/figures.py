@@ -98,8 +98,18 @@ def fig_cost_to_decision(results: Path, out: Path) -> bool:
     if not rows:
         return False
 
-    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6))
-    x = np.arange(len(rows))
+    # Order so the two comparison classes are contiguous, then shade them apart. Placing
+    # an uncertified point estimate beside a certified ranking on one axis invites
+    # exactly the misreading the caption has to spend two lines undoing, so the grouping
+    # is drawn, not just described.
+    guaranteed = {"C_sequential", "D_quorum"}
+    rows = ([r for r in rows if r[0] not in guaranteed]
+            + [r for r in rows if r[0] in guaranteed])
+    n_free = sum(1 for r in rows if r[0] not in guaranteed)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 5.2))
+    x = np.arange(len(rows), dtype=float)
+    x[n_free:] += 0.6  # a visible gap between the two classes
     for ax, idx, title, unit in (
         (axes[0], 2, "Rollouts to a correct ranking", "rollouts"),
         (axes[1], 3, "Spend to a correct ranking", "US$"),
@@ -109,22 +119,49 @@ def fig_cost_to_decision(results: Path, out: Path) -> bool:
         colours = [PALETTE[r[0]] for r in rows]
         ax.bar(x, vals, yerr=errs, capsize=4, color=colours, edgecolor="white", linewidth=0.8)
         ax.set_yscale("log")
+
+        # Headroom on the log axis so the group headers clear the tallest value label.
+        lo, hi = ax.get_ylim()
+        hi = hi * 3.0
+        split = (x[n_free - 1] + x[n_free]) / 2.0 if 0 < n_free < len(rows) else None
+        if split is not None:
+            ax.axvspan(x[0] - 0.7, split, color="#f2b705", alpha=0.07, zorder=0)
+            ax.axvspan(split, x[-1] + 1.25, color="#2e8b6f", alpha=0.07, zorder=0)
+            ax.axvline(split, color="#999", linestyle=":", linewidth=1.2, zorder=1)
+            ax.text(np.mean(x[:n_free]), hi * 0.62, "NO error guarantee",
+                    ha="center", va="center", fontsize=9, color="#8a6d00", weight="bold")
+            ax.text(np.mean(x[n_free:]), hi * 0.62, "ranking certified\nat family-wise alpha",
+                    ha="center", va="center", fontsize=9, color="#1d6b45", weight="bold")
+        ax.set_xlim(x[0] - 0.7, x[-1] + 1.25)
+        ax.set_ylim(lo, hi)
         ax.set_xticks(x)
         ax.set_xticklabels([r[1] for r in rows], fontsize=8, rotation=18, ha="right")
         ax.set_ylabel(unit)
         ax.set_title(title, fontsize=11)
         ax.grid(axis="y", alpha=0.25, linewidth=0.6)
         for xi, v in zip(x, vals):
-            ax.text(xi, v * 1.12, f"{v:,.0f}", ha="center", fontsize=8)
+            ax.text(xi, v * 1.1, f"{v:,.0f}", ha="center", fontsize=8)
+
+        # Annotate the one comparison that is actually like-for-like.
+        if n_free + 1 < len(rows):
+            c_val, d_val = vals[n_free], vals[n_free + 1]
+            if c_val > 0:
+                ax.annotate(
+                    f"{100 * (1 - d_val / c_val):.0f}% cheaper\nthan (C)"
+                    if idx == 3 else f"{100 * (1 - d_val / c_val):.0f}% fewer\nthan (C)",
+                    xy=(x[n_free + 1] + 0.42, d_val),
+                    xytext=(x[n_free + 1] + 0.95, d_val * 0.62),
+                    ha="center", va="center", fontsize=9, weight="bold", color="#1d6b45",
+                    arrowprops=dict(arrowstyle="->", color="#1d6b45", lw=1.4))
 
     acc = "   ".join(f"{LABELS[r[0]].split(chr(10))[0]}: {r[4]:.0%}" for r in rows)
     fig.suptitle("Cost to the same conclusion (log scale). Accuracy over replications -- "
-                 + acc, fontsize=9, y=1.04)
-    fig.text(0.5, -0.16,
-             "(A) and (B) return a point estimate with no error guarantee; (C) and (D) "
-             "certify the ranking at a family-wise level.\nThe honest comparison is "
-             "within those two groups.",
-             ha="center", fontsize=8, style="italic")
+                 + acc, fontsize=9, y=1.02)
+    fig.text(0.5, -0.17,
+             "The two shaded classes are not comparable with each other. (A) and (B) return a "
+             "point estimate with no error control;\n(C) and (D) return a ranking certified at "
+             "a family-wise level. The like-for-like comparison is (D) against (C).",
+             ha="center", fontsize=8.5, style="italic")
     _save(fig, out / "fig1_cost_to_decision.png")
     return True
 
@@ -137,14 +174,25 @@ def fig_scaffold_shift(results: Path, out: Path) -> bool:
     df = _read(results, "shift.csv")
     if df is None:
         return False
-    fig, ax = plt.subplots(figsize=(7.4, 4.8))
+    fig, ax = plt.subplots(figsize=(7.8, 5.0))
+    # (C) and (D) both sit at 1.0 across the whole sweep, so without distinct styling one
+    # line simply disappears under the other and the figure appears to be missing a
+    # series. Give them different dashes and markers rather than nudging the data.
+    style = {
+        "A_naive": dict(marker="o", linestyle="-", linewidth=2, markersize=6),
+        "B_subset_irt": dict(marker="s", linestyle="-", linewidth=2.6, markersize=7),
+        "C_sequential": dict(marker="^", linestyle="--", linewidth=2.6, markersize=8),
+        "D_quorum": dict(marker="D", linestyle=":", linewidth=2.6, markersize=6),
+    }
     for cond, grp in df.groupby("condition"):
         agg = grp.groupby("shift").correct.agg(["mean", "count"]).reset_index()
         n = agg["count"].clip(lower=1)
         se = np.sqrt(agg["mean"] * (1 - agg["mean"]) / n)
-        ax.errorbar(agg.shift_ if hasattr(agg, "shift_") else agg["shift"], agg["mean"],
-                    yerr=se, marker="o", capsize=3, linewidth=2,
-                    color=PALETTE.get(cond, "#888"), label=LABELS.get(cond, cond))
+        ax.errorbar(agg["shift"], agg["mean"], yerr=se, capsize=3,
+                    color=PALETTE.get(cond, "#888"), label=LABELS.get(cond, cond),
+                    **style.get(cond, dict(marker="o", linestyle="-", linewidth=2)))
+    ax.text(df["shift"].max(), 1.005, "(C) and (D) coincide at 1.00", ha="right",
+            va="bottom", fontsize=8, style="italic", color="#444")
     ax.set_xlabel("scaffold shift (logit units added to the scaffold main effect)")
     ax.set_ylabel("P(correct ranking)")
     ax.set_ylim(-0.03, 1.05)

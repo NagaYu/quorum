@@ -4,7 +4,7 @@ emoji: ⚖️
 colorFrom: green
 colorTo: blue
 sdk: gradio
-sdk_version: 5.0.0
+sdk_version: 5.49.1
 app_file: app.py
 pinned: false
 license: apache-2.0
@@ -24,6 +24,8 @@ tags:
 Quorum is a research prototype for rank-targeted **nested sequential experimental design**. It maintains an anytime-valid confidence sequence on model-vs-model contrasts, chooses each next rollout by expected reduction in *rank* uncertainty per dollar, and stops the moment the ordering is certified.
 
 Inference is **design-based and model-assisted**: validity comes from the sampling design (Horvitz–Thompson weighting plus a martingale argument), while a hierarchical Bayesian cell model only steers *where the next rollout goes*. A wrong model costs efficiency, never coverage. That separation is the point of the package.
+
+**Code:** [github.com/NagaYu/quorum](https://github.com/NagaYu/quorum)  ·  **Space:** [huggingface.co/spaces/NagaYu/quorum](https://huggingface.co/spaces/NagaYu/quorum)
 
 ## Quickstart
 
@@ -95,6 +97,8 @@ Measured, not asserted. Regenerate with `python -m benchmarks.run` and `python -
 
 ### Cost to the same conclusion
 
+![Cost to the same conclusion](figures/fig1_cost_to_decision.png)
+
 Grid `6 tasks x 3 seeds x 3 scaffolds x 4 models`, ability gap 0.45, α = 0.05 family-wise, 12 independent worlds, matched seeds:
 
 | Condition | Rollouts | Spend | Correct ranking | Error guarantee |
@@ -111,6 +115,8 @@ Grid `6 tasks x 3 seeds x 3 scaffolds x 4 models`, ability gap 0.45, α = 0.05 f
 
 ### Robustness to a scaffold shift
 
+![Accuracy under a scaffold shift](figures/fig2_scaffold_shift.png)
+
 A shift adds to the scaffold main effect: absolute scores move a lot, the true ranking does not. (B)'s anchor set is fitted once and reused, as published anchor sets are.
 
 | Shift (logits) | 0.0 | 0.6 | 1.2 | 1.8 | 2.4 | 3.0 |
@@ -123,6 +129,8 @@ A shift adds to the scaffold main effect: absolute scores move a lot, the true r
 P(correct ranking) over 12 worlds. (B) degrades because its estimand is *absolute ability* read off a frozen anchor set; (C)/(D) estimate a scaffold-marginalised paired contrast and are unaffected.
 
 ### Coverage
+
+![Coverage](figures/fig3_coverage.png)
 
 Null pair (two models with identical ability, so *any* rejection is an error), 300 replications per cell:
 
@@ -225,7 +233,9 @@ SPEC.md            the authoritative math and interface contract
 ```bibtex
 @software{quorum2026,
   title  = {Quorum: rank-targeted nested sequential design for LLM evaluation},
+  author = {Nagao, Yuta},
   year   = {2026},
+  url    = {https://github.com/NagaYu/quorum},
   note   = {Research prototype. Apache-2.0.}
 }
 ```

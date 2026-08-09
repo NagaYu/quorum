@@ -30,7 +30,9 @@ all = ["pandas>=2.0", "matplotlib>=3.7", "gradio>=4.0", "datasets>=2.14", "huggi
 quorum = "quorum.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/quorum-eval/quorum"
+Homepage = "https://github.com/NagaYu/quorum"
+Repository = "https://github.com/NagaYu/quorum"
+"Hugging Face Space" = "https://huggingface.co/spaces/NagaYu/quorum"
 
 [tool.setuptools.packages.find]
 include = ["quorum*", "benchmarks*"]

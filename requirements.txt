@@ -1,0 +1,6 @@
+# Hugging Face Space runtime dependencies.
+# The Quorum core needs only numpy + scipy; the Space adds gradio and pandas.
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+gradio>=5.0

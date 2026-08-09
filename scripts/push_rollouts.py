@@ -39,7 +39,7 @@ SCHEMA_DOC = {
 CARD = """\
 # Rollout-level evaluation records
 
-One row per rollout, produced by or for [Quorum](https://github.com/quorum-eval/quorum).
+One row per rollout, produced by or for [Quorum](https://github.com/NagaYu/quorum).
 
 Rollout-level data is what makes a leaderboard re-analysable: anytime-valid confidence
 sequences, paired scaffold-marginalised contrasts and control-variate adjustments all
