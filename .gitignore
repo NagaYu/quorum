@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+
+# Scratch
+*.log
+data/rollouts.jsonl
+
+# NOTE: figures/*.png and results/*.csv are deliverables and are tracked on purpose.
