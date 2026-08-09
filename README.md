@@ -35,19 +35,22 @@ quorum compare modelA modelB --benchmark synthetic-easy --budget $50
 ```
 
 ```text
-rollouts: 2456   spend: $47.40   wall: 20,964s
+rollouts: 2068   spend: $50.02   wall: 21,179s
 
 [separated]  modelA vs modelB: the interval for the success-rate difference excludes 0
-             (Delta in [+0.0039, +0.3799], 95% anytime-valid).
+             (Delta in [+0.0013, +0.1513], 95% anytime-valid).
+             On this synthetic benchmark the data orders modelA above modelB.
 ```
 
 Change the benchmark to `synthetic-hard` and it says the other thing — the thing a leaderboard never says:
 
 ```text
-[indistinguishable at this budget]  A vs B: Delta in [-0.0421, +0.0113] contains 0.
-             The data does not support ordering these two.
-             Projection (not a guarantee): ~31,974 more paired rollouts.
+[indistinguishable at this budget]  A vs B: Delta in [-1.0000, +1.0000] contains 0.
+             The data does not support ordering these two. The observed difference is
+             too close to zero to project a finishing budget from.
 ```
+
+Exit code is `0` when the requested pair separates and `2` when the budget runs out first, so it composes in a script.
 
 ## Method
 
@@ -196,7 +199,7 @@ print(sampler.summary())   # says "NOT established" when it is not
 
 Everything shipped here runs on a synthetic simulator. Model names accepted by the CLI are report captions attached to synthetic indices; no surface in this repository measures, evaluates or ranks a real system, and none produces disparaging language about any specific model.
 
-The Space is built for the opposite purpose: to make statistical **indistinguishability** visible. It highlights in red every pair a dataset does not separate and tells you how much more data the gap would need. On the bundled demo, all 10 pairs are indistinguishable despite visibly different scores — which is the entire point. "Not distinguishable" means *this data cannot tell them apart*; it does not mean the models are equal, and it is not a criticism of either.
+The Space is built for the opposite purpose: to make statistical **indistinguishability** visible. It highlights in red every pair a dataset does not separate and tells you how much more data the gap would need. On the bundled demo, half the pairs are indistinguishable at alpha = 0.05 despite every score in the table being different — which is the entire point. "Not distinguishable" means *this data cannot tell them apart*; it does not mean the models are equal, and it is not a criticism of either.
 
 ## Limitations
 

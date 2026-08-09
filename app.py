@@ -47,8 +47,14 @@ def _ensure_demo() -> Path:
     from quorum.simulator import RolloutSimulator, make_truth
     from quorum.types import GridSpec
 
-    spec = GridSpec(8, 3, 3, 5)
-    truth = make_truth(spec, seed=7, ability_gap=0.18)
+    spec = GridSpec(20, 4, 3, 5)
+    # Tuned so the demo shows *both* outcomes at the default alpha: about half the
+    # pairs separate and half do not. A demo where nothing ever resolves teaches only
+    # half the lesson, and one where everything resolves teaches the wrong one.
+    # The binding constraint is the number of blocks, not rollouts per block: the
+    # confidence sequence runs over block-level differences, so adding repeats inside a
+    # block barely moves it while adding tasks does.
+    truth = make_truth(spec, seed=7, ability_gap=0.42)
     sim = RolloutSimulator(truth, seed=7)
     rng = np.random.default_rng(7)
     rows = []

@@ -252,6 +252,19 @@ def _decision_to_json(decision: RankDecision, labels: Sequence[str]) -> dict[str
     }
 
 
+def _pair_separated(decision: RankDecision, pair: tuple[int, int]) -> bool:
+    """Whether this specific pair's interval excludes zero.
+
+    Claim: coverage
+    """
+    for key in (pair, (pair[1], pair[0])):
+        interval = decision.intervals.get(key)
+        if interval is not None:
+            lo, hi = interval
+            return bool(lo > 0.0 or hi < 0.0)
+    return False
+
+
 def _cmd_compare(args: argparse.Namespace) -> int:
     """`quorum compare A B` -- settle (or decline to settle) one pairwise ordering.
 
@@ -286,7 +299,11 @@ def _cmd_compare(args: argparse.Namespace) -> int:
     if args.json:
         Path(args.json).write_text(json.dumps(_decision_to_json(decision, labels), indent=2))
         print(f"\nwrote {args.json}")
-    return 0 if decision.resolved else 2
+    # `compare` was asked about ONE pair, so its exit status reports that pair. The
+    # decision's `resolved` flag covers the whole model order, which this invocation
+    # never bought evidence for -- using it here would report failure on a comparison
+    # that actually succeeded.
+    return 0 if _pair_separated(decision, (0, 1)) else 2
 
 
 def _cmd_rank(args: argparse.Namespace) -> int:
