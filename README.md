@@ -3,9 +3,8 @@ title: Quorum
 emoji: ⚖️
 colorFrom: green
 colorTo: blue
-sdk: gradio
-sdk_version: 5.49.1
-app_file: app.py
+sdk: static
+app_file: index.html
 pinned: false
 license: apache-2.0
 tags:
@@ -25,7 +24,12 @@ Quorum is a research prototype for rank-targeted **nested sequential experimenta
 
 Inference is **design-based and model-assisted**: validity comes from the sampling design (Horvitz–Thompson weighting plus a martingale argument), while a hierarchical Bayesian cell model only steers *where the next rollout goes*. A wrong model costs efficiency, never coverage. That separation is the point of the package.
 
-**Code:** [github.com/NagaYu/quorum](https://github.com/NagaYu/quorum)  ·  **Space:** [huggingface.co/spaces/NagaYu/quorum](https://huggingface.co/spaces/NagaYu/quorum)
+**Live demo:** [huggingface.co/spaces/NagaYu/quorum](https://huggingface.co/spaces/NagaYu/quorum)  ·  **Code:** [github.com/NagaYu/quorum](https://github.com/NagaYu/quorum)
+
+> The published Space is **static**: `scripts/build_static_space.py` runs the real
+> `app.analyse` at build time and bakes the results in, so the page loads instantly with no
+> runtime. `app.py` is the full Gradio app — it takes uploads and runs locally
+> (`python app.py`), but hosting it on Spaces needs a paid runtime.
 
 ## Quickstart
 
