@@ -18,18 +18,15 @@ tags:
 
 # Quorum
 
-**The decision an evaluation has to make is usually a *ranking*, not a set of scores. Make the ranking the estimand and you can buy the same conclusion far more cheaply — and you find out which comparisons your data never supported in the first place.**
+** LLM evaluation is usually bought by the rollout and spent on a ranking. Quorum makes the ranking the thing you pay for — and stops paying the moment it is decided.**
 
-Quorum is a research prototype for rank-targeted **nested sequential experimental design**. It maintains an anytime-valid confidence sequence on model-vs-model contrasts, chooses each next rollout by expected reduction in *rank* uncertainty per dollar, and stops the moment the ordering is certified.
+Quorum is an evaluation-cost reduction tool for LLM comparison. Instead of running a fixed grid of rollouts and reading scores off the end, it maintains an anytime-valid confidence sequence on model-vs-model contrasts, allocates each next rollout where it reduces *rank* uncertainty most per dollar, and stops as soon as the ordering is certified at a family-wise level. If the budget runs out first, it says so: some comparisons your data never supported, and Quorum names them instead of letting a leaderboard imply them.
 
-Inference is **design-based and model-assisted**: validity comes from the sampling design (Horvitz–Thompson weighting plus a martingale argument), while a hierarchical Bayesian cell model only steers *where the next rollout goes*. A wrong model costs efficiency, never coverage. That separation is the point of the package.
+Measured on its benchmark grid (6 tasks × 3 seeds × 3 scaffolds × 4 models, 12 worlds): the same ranking conclusion as a sequential-only design for **$114.42 instead of $173.17 (spend −34%)**, with 100% correct rankings and anytime-valid, family-wise error control. Cheaper baselines in the same table return point estimates with no error guarantee at all — the README's Results section keeps the two groups separate, and so should any comparison you make.
 
-**Live demo:** [huggingface.co/spaces/NagaYu/quorum](https://huggingface.co/spaces/NagaYu/quorum)  ·  **Code:** [github.com/NagaYu/quorum](https://github.com/NagaYu/quorum)
+Honest limits, measured not asserted: control variates add nothing under exact pairing (variance ratio 1.005), and inner truncation is off by default because on this simulator every audited setting cost more than running rollouts to completion.
 
-> The published Space is **static**: `scripts/build_static_space.py` runs the real
-> `app.analyse` at build time and bakes the results in, so the page loads instantly with no
-> runtime. `app.py` is the full Gradio app — it takes uploads and runs locally
-> (`python app.py`), but hosting it on Spaces needs a paid runtime.
+Live demo: https://huggingface.co/spaces/NagaYu/quorum · Contact: https://nagayu-portfolio.nagayu.workers.dev/en
 
 ## Quickstart
 
